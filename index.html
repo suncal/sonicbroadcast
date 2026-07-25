@@ -70,6 +70,7 @@
     <div class="hues" id="hueRow"></div>
     <button class="go" id="goBtn">📣 Broadcast to the room</button>
     <div class="status" id="goStatus"></div>
+    <button class="join" id="qrBtn" style="margin-top:12px">📱 Show join code — others scan to join instantly</button>
   </div>
 
   <div class="foot">The only way to instantly light up &amp; message a whole room of phones with zero setup and zero
@@ -78,6 +79,22 @@
 
 <div id="show"><div class="txt" id="showTxt"></div><div class="tap">tap to dismiss</div></div>
 
+<div id="qrov" style="position:fixed;inset:0;display:none;z-index:100;background:rgba(7,7,12,.97);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px">
+  <div style="font-size:20px;font-weight:800;margin-bottom:4px">Scan to join the show</div>
+  <div style="color:#9a9ac0;font-size:14px;margin-bottom:18px">Point any phone's camera here — no app needed</div>
+  <div style="background:#fff;padding:14px;border-radius:16px"><img id="qrimg" alt="join QR" style="width:230px;height:230px;image-rendering:pixelated;display:block"></div>
+  <div id="qrurl" style="color:#22d3ee;font-size:13px;margin-top:16px;word-break:break-all"></div>
+  <button id="qrClose" style="margin-top:20px;width:200px;background:#12121c;color:#eef">Close</button>
+</div>
+
+<div id="joinprompt" style="position:fixed;inset:0;display:none;z-index:101;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;cursor:pointer;background:linear-gradient(160deg,#160e2e,#07070c)">
+  <div style="font-size:52px">🎉</div>
+  <div style="font-size:26px;font-weight:800;margin:10px 0">Join the light show</div>
+  <div style="color:#c4b5fd;font-size:16px;max-width:20em">Tap anywhere, allow the microphone, and your phone will light up when someone broadcasts.</div>
+  <div style="margin-top:22px;padding:14px 28px;border-radius:14px;background:linear-gradient(90deg,#7c3aed,#22d3ee);color:#fff;font-weight:800;font-size:18px">Tap to join ✨</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <script>
 // ===== modem (proven params from SoundLink) =====
 const SYNC_F=4600, F0=5000, DF=200, NTONE=16;
@@ -190,6 +207,24 @@ window.__selftest=(text,e,h)=>{ const save=[fx,hue]; fx=e||0; hue=h||270;
   let s=Array.from(buf.getChannelData(0)); const pad=new Array(Math.round(sr*0.2)).fill(0); s=[...pad,...s,...pad];
   const d=decode(Float32Array.from(s),sr); [fx,hue]=save;
   return d?decodePayload(d):null; };
+
+// ===== QR instant-join =====
+function joinUrl(){ return location.origin + location.pathname + '?join=1'; }
+document.getElementById('qrBtn').onclick=()=>{
+  const url=joinUrl(); document.getElementById('qrurl').textContent=url.replace(/^https?:\/\//,'');
+  try{
+    const qr=qrcode(0,'M'); qr.addData(url); qr.make();
+    document.getElementById('qrimg').src=qr.createDataURL(8,4);
+  }catch(e){ document.getElementById('qrimg').style.display='none'; }
+  document.getElementById('qrov').style.display='flex';
+};
+document.getElementById('qrClose').onclick=()=>{ document.getElementById('qrov').style.display='none'; };
+
+// If opened via a scanned join code, show a one-tap "join" prompt (mic needs a tap gesture).
+if(new URLSearchParams(location.search).get('join')==='1'){
+  const jp=document.getElementById('joinprompt'); jp.style.display='flex';
+  jp.onclick=()=>{ jp.style.display='none'; document.getElementById('joinBtn').click(); };
+}
 
 // ===== PWA =====
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').then(()=>{ document.getElementById('pwa').textContent='Installable · works fully offline.'; }).catch(()=>{}); }
