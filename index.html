@@ -229,5 +229,6 @@ if(new URLSearchParams(location.search).get('join')==='1'){
 // ===== PWA =====
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').then(()=>{ document.getElementById('pwa').textContent='Installable · works fully offline.'; }).catch(()=>{}); }
 </script>
+<p style="text-align:center;font-size:12px;opacity:.55;margin:28px 12px;">Website crafted by <a href="https://everbuiltstudio.com" style="color:inherit;text-decoration:underline;">Everbuilt Studio</a></p>
 </body>
 </html>
